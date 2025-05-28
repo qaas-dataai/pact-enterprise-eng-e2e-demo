@@ -1,0 +1,31 @@
+name: Contract Test CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+      - name: Run Consumer Tests
+        run: |
+          source venv/bin/activate
+          pytest consumers
+      - name: Run Provider Verifications
+        run: |
+          source venv/bin/activate
+          for dir in providers/*; do
+            echo "🔍 Verifying $dir"
+            python $dir/verify_contracts.py || exit 1
+          done
